@@ -1,0 +1,15 @@
+Design objectives in no particular order
+	
+	Stability before functionality
+	Provide a full featured node based GUI similar to the Blender and Nuke node editors
+	Provide the necessary tools to fully automate pipeline tasks efficiently
+	Easy to implement as a GUI for other programs
+	Full support for Python and C++
+	Able to define interpreters for unsupported languages
+	Licence compatible with both commercial and non commercial use free of charge
+	Entirely open source
+	Easy to use by non programmers
+	Well documented code and usage
+	Must look and feel "Modern"
+	Fully functional on both Windows and major GNU/Linux platforms
+	

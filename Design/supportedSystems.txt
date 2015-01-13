@@ -1,0 +1,9 @@
+Supported systems
+
+	Linux (CentOS7, SteamOS/Debian, Ubuntu)
+	Windows (7 and up)
+	Python 3.x
+	C++
+	Syntax highlighting
+	Code styling check (pylint, cpp?)
+	
