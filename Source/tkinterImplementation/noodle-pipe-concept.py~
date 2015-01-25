@@ -39,8 +39,27 @@ class App:
 
 		#Create canvas
 		self.frame = Frame(app)
-		top = self.canvas = Canvas(self.frame, width=1080, height=720, bg="#6a6a6a")
+		top = self.canvas = Canvas(self.frame, width=1080, height=720, bg="#393939")
 		top.grid(row=0, column=0)
+		
+		#Draw grid
+		segments = 20
+		chunks = 4
+		dimentions = [int(top.cget("width")), int(top.cget("height"))]
+		
+		chunkCount = 0
+		segCount = segments
+		while segCount > 0:
+			if chunkCount == 0:
+				chunkCount = chunks
+				self.canvas.create_line((dimentions[0] / segments * segCount), dimentions[1], (dimentions[0] / segments * segCount), 0, fill="#292929", width="2")
+				self.canvas.create_line(dimentions[0], (dimentions[1] / segments * segCount), 0, (dimentions[1] / segments * segCount), fill="#292929", width="2")
+				pass
+			else:
+				self.canvas.create_line((dimentions[0] / segments * segCount), dimentions[1], (dimentions[0] / segments * segCount), 0, fill="#2f2f2f", width="1")
+				self.canvas.create_line(dimentions[0], (dimentions[1] / segments * segCount), 0, (dimentions[1] / segments * segCount), fill="#2f2f2f", width="1")
+				segCount = segCount - 1 
+				chunkCount = chunkCount - 1
 		
 		#create node
 		self.draw_rect()
@@ -57,14 +76,8 @@ class App:
 		self.nodeMenu = Menu(self.frame, tearoff=False)
 		self.nodeMenu.add_command(label="Devel", command=self.draw_rect())
 		
-		'''
-		self.nodeMenuFrame = Frame(self.frame, width=512, height=512)
-		self.nodeMenuFrame.pack()
-		self.nodeMenuFrame.bind("<Button-3>", self.nodeMenu)
-		'''
 		self.canvas.bind("<Button-3>", self.rightClickMenu)
 		
-
 		self.frame.pack(fill=BOTH, expand=True)
 		
 		self.initial = (0, 0)
@@ -76,15 +89,14 @@ class App:
 	def start_line(self, event):
 		self.initial = (event.x, event.y)
 
-
 	def draw_line(self, event):
 		self.canvas.create_line((self.initial[0], self.initial[1]), (event.x, event.y))
 		self.initial = (event.x, event.y)
 
 
 	def draw_rect(self):
-		top.create_rectangle((100, 300), (30, 40), fill="#4d4d4d", outline="#9d9d9d", activefill="#9d9d9d", tag="node1")
-		top.create_rectangle((50, 100), (60, 70), fill="#4d4d4d", outline="#9d9d9d", activefill="#9d9d9d", tag="node2")
+		top.create_rectangle((100, 300), (30, 40), fill="#9B9B9B", outline="#9d9d9d", activefill="#9d9d9d", tag="node1")
+		top.create_rectangle((50, 100), (60, 70), fill="#9B9B9B", outline="#9d9d9d", activefill="#9d9d9d", tag="node2")
 		##app.bind("<Button-1>", self.click)
 		top.tag_bind("node1", "<Button-1>", self.clickNode)
 		top.tag_bind("node1", "<B1-Motion>", self.dragNode)
