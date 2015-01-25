@@ -41,6 +41,7 @@ class App:
 		#Bind canvas
 		self.canvas.bind("<Button-1>", self.start_line)
 		self.canvas.bind("<B1-Motion>", self.draw_line)
+		self.canvas.bind("<MouseWheel>", self.onMouseWheel)
 		
 		#Create quit button
 		quit_button = Button(self.frame, text="End", command=self.end)
@@ -56,6 +57,12 @@ class App:
 		
 		self.initial = (0, 0)
 		
+		#self.canvas.config(scrollregion=self.canvas.bbox(ALL))
+		#self4.canvas.scale(0, 0, 2, 2)
+		
+	
+	def onMouseWheel(self):
+		print("You used the scroll wheel!")
 		
 	def rightClickMenu(self, event):
 		self.nodeMenu.post(event.x_root, event.y_root)
@@ -89,7 +96,7 @@ class App:
 
 
 	def end(self):
-		self.nodeFrame.quit()
+		self.frame.quit()
 
 
 if __name__ == '__main__':
@@ -105,6 +112,9 @@ app.mainloop()
 
 
 '''
+Node manager!
+ScrollWheel not working
+
 Create nodes
 Draw line between two points
 Add anchors on nodes

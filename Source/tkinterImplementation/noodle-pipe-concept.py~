@@ -6,32 +6,6 @@ except ImportError:
 	##Python 2
 	from Tkinter import *
 
-'''
-class GUI(tki.Tk):
-    def __init__(self):
-        Tk.__init__(self)
-
-        # create a popup menu
-        self.aMenu = Menu(self, tearoff=0)
-        self.aMenu.add_command(label="Undo", command=self.hello)
-        self.aMenu.add_command(label="Redo", command=self.hello)
-
-        # create a frame
-        self.aFrame = Frame(self, width=512, height=512)
-        self.aFrame.pack()
-
-        # attach popup to frame
-        self.aFrame.bind("<Button-3>", self.popup)
-
-    def hello(self):
-        print("hello!")
-
-    def popup(self, event):
-        self.aMenu.post(event.x_root, event.y_root)
-
-gui = GUI()
-gui.mainloop()
-'''
 
 class App:
 	def __init__(self, app, master=None):
@@ -67,6 +41,7 @@ class App:
 		#Bind canvas
 		self.canvas.bind("<Button-1>", self.start_line)
 		self.canvas.bind("<B1-Motion>", self.draw_line)
+		self.canvas.bind("<MouseWheel>", self.onMouseWheel)
 		
 		#Create quit button
 		quit_button = Button(self.frame, text="End", command=self.end)
@@ -82,6 +57,12 @@ class App:
 		
 		self.initial = (0, 0)
 		
+		#self.canvas.config(scrollregion=self.canvas.bbox(ALL))
+		#self4.canvas.scale(0, 0, 2, 2)
+		
+	
+	def onMouseWheel(self):
+		print("You used the scroll wheel!")
 		
 	def rightClickMenu(self, event):
 		self.nodeMenu.post(event.x_root, event.y_root)
@@ -96,11 +77,10 @@ class App:
 
 	def draw_rect(self):
 		top.create_rectangle((100, 300), (30, 40), fill="#9B9B9B", outline="#9d9d9d", activefill="#9d9d9d", tag="node1")
-		top.create_rectangle((50, 100), (60, 70), fill="#9B9B9B", outline="#9d9d9d", activefill="#9d9d9d", tag="node2")
-		##app.bind("<Button-1>", self.click)
+		#app.bind("<Button-1>", self.click)
 		top.tag_bind("node1", "<Button-1>", self.clickNode)
 		top.tag_bind("node1", "<B1-Motion>", self.dragNode)
-		##top.tag_bind("node1", "<ButtonRelease-1>", self.releaseNode)
+		#top.tag_bind("node1", "<ButtonRelease-1>", self.releaseNode)
 
 
 	def clickNode(self, event):
@@ -116,14 +96,14 @@ class App:
 
 
 	def end(self):
-		self.nodeFrame.quit()
+		self.frame.quit()
 
 
 if __name__ == '__main__':
 	app = Tk()
 	
 app.title("Node Editor")
-app.configure(bg = "#6a6a6a")
+app.configure(bg = "#393939")
 ##app.geometry("1080x720")
 App(None)
 
@@ -133,7 +113,6 @@ app.mainloop()
 
 '''
 Create nodes
-Move nodes
 Draw line between two points
 Add anchors on nodes
 node name textbox
