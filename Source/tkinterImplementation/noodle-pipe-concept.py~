@@ -57,6 +57,11 @@ class App:
 		self.nodeMenu = Menu(self.frame, tearoff=False)
 		self.nodeMenu.add_command(label="Devel", command=self.draw_rect())
 		
+		'''
+		self.nodeMenuFrame = Frame(self.frame, width=512, height=512)
+		self.nodeMenuFrame.pack()
+		self.nodeMenuFrame.bind("<Button-3>", self.nodeMenu)
+		'''
 		self.canvas.bind("<Button-3>", self.rightClickMenu)
 		
 
@@ -70,6 +75,7 @@ class App:
 	
 	def start_line(self, event):
 		self.initial = (event.x, event.y)
+
 
 	def draw_line(self, event):
 		self.canvas.create_line((self.initial[0], self.initial[1]), (event.x, event.y))
