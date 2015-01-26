@@ -54,7 +54,7 @@ class GUI:
 
 		#create right click menu
 		self.nodeMenu = Menu(self.frame, tearoff=False)
-		self.nodeMenu.add_command(label="Devel", command=print("You can do it"))
+		self.nodeMenu.add_command(label="Devel", command=print("YOu can do it"))
 		self.canvas.bind("<Button-3>", self.rightClickMenu)
 		
 		#Bind canvas
