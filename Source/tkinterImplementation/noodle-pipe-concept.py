@@ -28,12 +28,14 @@ class App:
 
 		
 class GUI:
-	def __init__(self, name, x=1280, y=720, canvasFill="#393939"):
+	def __init__(self, name, x=1280, y=720, canvasFill="#393939", gridSpace=17, gridFill="#2f2f2f"):
 		#variables
 		global can
 		self.x = x
 		self.y = y
 		self.canvasFill = canvasFill
+		self.gridSpace = gridSpace
+		self.gridFill = gridFill
 		
 		#Create canvas
 		self.frame = Frame(tk)
@@ -41,23 +43,22 @@ class GUI:
 		self.canvas.grid(row=0, column=0)
 		
 		#Draw grid
-		segments = 20
 		chunks = 4
-		dimentions = [int(self.canvas.cget("width")), int(self.canvas.cget("height"))]
 		chunkCount = 0
-		segCount = segments
-		while segCount > 0:
+		hLength = 0
+		vLength = 0
+		while (hLength <= self.x) or (vLength <= self.y):
 			if chunkCount == 0:
 				chunkCount = chunks
-				self.canvas.create_line((dimentions[0] / segments * segCount), dimentions[1], (dimentions[0] / segments * segCount), 0, fill="#292929", width="2")
-				self.canvas.create_line(dimentions[0], (dimentions[1] / segments * segCount), 0, (dimentions[1] / segments * segCount), fill="#292929", width="2")
-				pass
-			else:
-				self.canvas.create_line((dimentions[0] / segments * segCount), dimentions[1], (dimentions[0] / segments * segCount), 0, fill="#2f2f2f", width="1")
-				self.canvas.create_line(dimentions[0], (dimentions[1] / segments * segCount), 0, (dimentions[1] / segments * segCount), fill="#2f2f2f", width="1")
-				segCount = segCount - 1 
-				chunkCount = chunkCount - 1
-		
+				self.gridFill="#262626"
+			else:		
+				chunkCount -= 1
+				self.gridFill = gridFill
+			self.canvas.create_line(hLength, 0, hLength, self.y, fill=self.gridFill, width="1")
+			hLength += self.gridSpace
+			self.canvas.create_line(0, vLength, self.x, vLength, fill=self.gridFill, width="1")
+			vLength += self.gridSpace
+					
 		#Create quit button
 		quit_button = Button(self.frame, text="End", command=self.end)
 		quit_button.grid(row=1, column=0, sticky=(S,E))
@@ -101,7 +102,7 @@ class GUI:
 
 	
 class Node:
-	def __init__(self, name, anchorIn=4, anchorOut=2, anchorScale=12, anchorSpace=10, anchorFill="#DFCA35", bodyFill="#9B9B9B", nodeXY=(100, 100, 200, 300)):
+	def __init__(self, name, anchorIn=4, anchorOut=2, anchorScale=12, anchorSpace=10, anchorFill="#DFCA35", bodyFill="#9B9B9B", nodeXY=(100, 100, 200, 300), headerHeight=15):
 		#variables
 		self.name = name
 		self.anchorIn = anchorIn
@@ -109,6 +110,7 @@ class Node:
 		self.anchorSpace = anchorSpace
 		self.anchorScale = anchorScale
 		self.nodeXY = nodeXY
+		self.headerHeight = headerHeight
 		
 		#check if valid name
 		length = len(self.name)
@@ -125,10 +127,14 @@ class Node:
 			can.tag_bind(self.name, "<Button-1>", self.clickNode)
 			can.tag_bind(self.name, "<B1-Motion>", self.dragNode)
 			
+			#Header
+			can.create_rectangle((self.nodeXY[0], self.nodeXY[1]), (self.nodeXY[2], (self.nodeXY[1] + self.headerHeight)), fill="#646464", outline="#646464", tag=self.name)
+			can.create_text(self.nodeXY[0], self.nodeXY[1], anchor="nw", text=self.name, tag=self.name)
+			
 			#anchors
 			while self.anchorIn > 0:
 				startX = self.nodeXY[0] - (self.anchorScale / 2)
-				startY = self.nodeXY[1] + ((self.anchorSpace * (self.anchorIn - 1) + self.anchorSpace) + (self.anchorScale * (self.anchorIn - 1)))
+				startY = self.nodeXY[1] + self.headerHeight + ((self.anchorSpace * (self.anchorIn - 1) + self.anchorSpace) + (self.anchorScale * (self.anchorIn - 1)))
 				endPos = startY + self.anchorScale
 			
 				can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=bodyFill, outline="#000000", activefill="#DFCA35", tag=self.name)
@@ -136,7 +142,7 @@ class Node:
 				
 			while self.anchorOut > 0:
 				startX = self.nodeXY[2] - (self.anchorScale / 2)
-				startY = self.nodeXY[1] + ((self.anchorSpace * (self.anchorOut - 1) + self.anchorSpace) + (self.anchorScale * (self.anchorOut - 1)))
+				startY = self.nodeXY[1] + self.headerHeight + ((self.anchorSpace * (self.anchorOut - 1) + self.anchorSpace) + (self.anchorScale * (self.anchorOut - 1)))
 				endPos = startY + self.anchorScale
 			
 				can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=bodyFill, outline="#000000", activefill="#DFCA35", tag=self.name)
