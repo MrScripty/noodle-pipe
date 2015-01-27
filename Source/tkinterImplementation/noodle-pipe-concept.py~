@@ -25,13 +25,7 @@ class App:
 		Report(msgType=2)
 		
 		GUI(name="Main")
-		
-		#Create node
-		'''
-		node_001 = Node(name="Devel")
-		node_002 = Node(name="Spam")
-		node_003 = Node(name="Gotcha")
-		'''
+
 		
 class GUI:
 	def __init__(self, name, x=1280, y=720, canvasFill="#393939"):
@@ -72,16 +66,14 @@ class GUI:
 		self.frame.pack(fill=BOTH, expand=True)
 		self.initial = (0, 0)
 		
-		
 		#create right click menu
 		#Note: lambda is required to pass a arg in add_command
 		self.nodeMenu = Menu(self.frame)
 		self.nodeMenu.add_command(label="Devel-01", command=(lambda:Node(name="yesterday")))
-		self.nodeMenu.add_command(label="Devel-01", command=(lambda:Node(name="Shwoola")))
-		self.nodeMenu.add_command(label="Devel-02", command=self.onMouseWheel)
-		self.canvas.bind("<Button-3>", self.rightClickMenu)
+		self.nodeMenu.add_command(label="Devel-02", command=(lambda:Node(name="Shwoola")))
 		
 		#Bind canvas
+		self.canvas.bind("<Button-3>", self.rightClickMenu)
 		self.canvas.bind("<Button-1>", self.start_line)
 		self.canvas.bind("<B1-Motion>", self.draw_line)
 		self.canvas.bind("<MouseWheel>", self.onMouseWheel)
@@ -109,11 +101,14 @@ class GUI:
 
 	
 class Node:
-	def __init__(self, name, anchorIn=1, anchorOut=1, colorFill="#9B9B9B"):
+	def __init__(self, name, anchorIn=4, anchorOut=2, anchorScale=12, anchorSpace=10, anchorFill="#DFCA35", bodyFill="#9B9B9B", nodeXY=(100, 100, 200, 300)):
 		#variables
 		self.name = name
 		self.anchorIn = anchorIn
 		self.anchorOut = anchorOut
+		self.anchorSpace = anchorSpace
+		self.anchorScale = anchorScale
+		self.nodeXY = nodeXY
 		
 		#check if valid name
 		length = len(self.name)
@@ -123,11 +118,33 @@ class Node:
 		elif re.match('^[\w-]+$', self.name) is None:
 			print("Error: name contains non alphanumeric characters")
 			pass
+		#create GUI
 		else:
-			#create GUI
-			can.create_rectangle((100, 100), (300, 300), fill=colorFill, outline="#9d9d9d", activefill="#9d9d9d", tag=self.name)
+			#Body
+			can.create_rectangle((nodeXY[0], nodeXY[1]), (nodeXY[2], nodeXY[3]), fill=bodyFill, outline="#9d9d9d", activefill="#9d9d9d", tag=self.name)
 			can.tag_bind(self.name, "<Button-1>", self.clickNode)
 			can.tag_bind(self.name, "<B1-Motion>", self.dragNode)
+			
+			#anchors
+			while self.anchorIn > 0:
+				startX = self.nodeXY[0] - (self.anchorScale / 2)
+				startY = self.nodeXY[1] + ((self.anchorSpace * (self.anchorIn - 1) + self.anchorSpace) + (self.anchorScale * (self.anchorIn - 1)))
+				endPos = startY + self.anchorScale
+			
+				can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=bodyFill, outline="#000000", activefill="#DFCA35", tag=self.name)
+				self.anchorIn -= 1
+				
+			while self.anchorOut > 0:
+				startX = self.nodeXY[2] - (self.anchorScale / 2)
+				startY = self.nodeXY[1] + ((self.anchorSpace * (self.anchorOut - 1) + self.anchorSpace) + (self.anchorScale * (self.anchorOut - 1)))
+				endPos = startY + self.anchorScale
+			
+				can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=bodyFill, outline="#000000", activefill="#DFCA35", tag=self.name)
+				self.anchorOut -= 1
+				
+				
+				
+			#can.create_oval((100, 100), (110, 110), fill=bodyFill, outline="#DFCA35", activefill="#DFCA35", tag=self.name)
 			#self.canvas.tag_bind("node1", "<ButtonRelease-1>", self.releaseNode)
 		
 	
