@@ -5,16 +5,32 @@ try:
 except ImportError:
 	##Python 2
 	from Tkinter import *
+	
+try:
+	import re
+except ImportError:
+	print("Could not locate 're' module")
+	
 
 
 class App:
 	def __init__(self, tk, master=None):
 		
+		print("")
+		print("noodle-pipe start")
+		print("-----------------")
+		
+		Report(msgType=0, caller="App", msg="Test")
+		Report(msgType=1)
+		Report(msgType=2)
+		
 		GUI(name="Main")
 		
 		#Create node
+		
 		node_001 = Node(name="Devel")
 		node_002 = Node(name="Spam")
+		node_003 = Node(name="Gotcha")
 		
 
 class GUI:
@@ -98,11 +114,20 @@ class Node:
 		self.anchorIn = anchorIn
 		self.anchorOut = anchorOut
 		
-		#create GUI
-		can.create_rectangle((100, 100), (300, 300), fill=colorFill, outline="#9d9d9d", activefill="#9d9d9d", tag=self.name)
-		can.tag_bind(self.name, "<Button-1>", self.clickNode)
-		can.tag_bind(self.name, "<B1-Motion>", self.dragNode)
-		#self.canvas.tag_bind("node1", "<ButtonRelease-1>", self.releaseNode)
+		#check if valid name
+		length = len(self.name)
+		if (length <= 3) or (length > 64):
+			print("Error: name length out of bounds")
+			pass
+		elif re.match('^[\w-]+$', self.name) is None:
+			print("Error: name contains non alphanumeric characters")
+			pass
+		else:
+			#create GUI
+			can.create_rectangle((100, 100), (300, 300), fill=colorFill, outline="#9d9d9d", activefill="#9d9d9d", tag=self.name)
+			can.tag_bind(self.name, "<Button-1>", self.clickNode)
+			can.tag_bind(self.name, "<B1-Motion>", self.dragNode)
+			#self.canvas.tag_bind("node1", "<ButtonRelease-1>", self.releaseNode)
 		
 	
 	def clickNode(self, event):
@@ -115,6 +140,27 @@ class Node:
 		can.move(self.name, (event.x - self.startX), (event.y - self.startY))
 		self.startX = event.x
 		self.startY = event.y
+		
+		
+class Report:
+	def __init__(self, caller=None, msgType=0, msg=None):
+		if (msg is None) or (caller is None):
+			pass
+		else:
+			message = ""
+			if msgType == 0:
+				message += "Error : "
+			elif msgType == 1:
+				message += "Warning : "
+			else:
+				message += "Notice : "
+			message += caller + ", "
+			message += msg
+			
+			print(message)
+			
+			
+			
 
 
 if __name__ == '__main__':
