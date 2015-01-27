@@ -51,10 +51,16 @@ class GUI:
 		#Create quit button
 		quit_button = Button(self.frame, text="End", command=self.end)
 		quit_button.grid(row=1, column=0, sticky=(S,E))
-
+		
+		#pack
+		self.frame.pack(fill=BOTH, expand=True)
+		self.initial = (0, 0)
+		
+		
 		#create right click menu
-		self.nodeMenu = Menu(self.frame, tearoff=False)
-		self.nodeMenu.add_command(label="Devel", command=print("You can do it"))
+		self.nodeMenu = Menu(self.frame)
+		self.nodeMenu.add_command(label="Devel-01", command=self.onMouseWheel)
+		self.nodeMenu.add_command(label="Devel-02", command=self.onMouseWheel)
 		self.canvas.bind("<Button-3>", self.rightClickMenu)
 		
 		#Bind canvas
@@ -62,11 +68,8 @@ class GUI:
 		self.canvas.bind("<B1-Motion>", self.draw_line)
 		self.canvas.bind("<MouseWheel>", self.onMouseWheel)
 
-		#pack
-		self.frame.pack(fill=BOTH, expand=True)
-		self.initial = (0, 0)
-		
-		
+
+
 	def onMouseWheel(self):
 		print("You used the scroll wheel!")
 		
@@ -127,4 +130,5 @@ App(None)
 tk.mainloop()
 
 ##root.destroy()
+
 
