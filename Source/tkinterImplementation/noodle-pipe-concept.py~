@@ -20,19 +20,19 @@ class App:
 		print("noodle-pipe start")
 		print("-----------------")
 		
-		Report(msgType=0, caller="App", msg="Test")
+		Report(msgType=2, caller="App", msg="Test")
 		Report(msgType=1)
 		Report(msgType=2)
 		
 		GUI(name="Main")
 		
 		#Create node
-		
+		'''
 		node_001 = Node(name="Devel")
 		node_002 = Node(name="Spam")
 		node_003 = Node(name="Gotcha")
+		'''
 		
-
 class GUI:
 	def __init__(self, name, x=1280, y=720, canvasFill="#393939"):
 		#variables
@@ -74,8 +74,10 @@ class GUI:
 		
 		
 		#create right click menu
+		#Note: lambda is required to pass a arg in add_command
 		self.nodeMenu = Menu(self.frame)
-		self.nodeMenu.add_command(label="Devel-01", command=self.onMouseWheel)
+		self.nodeMenu.add_command(label="Devel-01", command=(lambda:Node(name="yesterday")))
+		self.nodeMenu.add_command(label="Devel-01", command=(lambda:Node(name="Shwoola")))
 		self.nodeMenu.add_command(label="Devel-02", command=self.onMouseWheel)
 		self.canvas.bind("<Button-3>", self.rightClickMenu)
 		
@@ -83,15 +85,14 @@ class GUI:
 		self.canvas.bind("<Button-1>", self.start_line)
 		self.canvas.bind("<B1-Motion>", self.draw_line)
 		self.canvas.bind("<MouseWheel>", self.onMouseWheel)
-
-
+		
 
 	def onMouseWheel(self):
 		print("You used the scroll wheel!")
 		
 		
 	def rightClickMenu(self, event):
-		self.nodeMenu.post(event.x_root, event.y_root)
+		self.nodeMenu.tk_popup(event.x_root, event.y_root)
 	
 	
 	def start_line(self, event):
@@ -147,6 +148,7 @@ class Report:
 		if (msg is None) or (caller is None):
 			pass
 		else:
+			message = ""
 			if msgType == 0:
 				message += "Error : "
 			elif msgType == 1:
@@ -159,8 +161,6 @@ class Report:
 			print(message)
 			
 			
-			
-
 
 if __name__ == '__main__':
 	tk = Tk()
