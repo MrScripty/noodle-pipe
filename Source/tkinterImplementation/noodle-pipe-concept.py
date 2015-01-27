@@ -24,7 +24,12 @@ class App:
 		Report(msgType=1)
 		Report(msgType=2)
 		
+		
+		
 		GUI(name="Main")
+		
+		Node(name="dfgh")
+		Node(name="yesterday")
 
 		
 class GUI:
@@ -112,43 +117,56 @@ class Node:
 		self.nodeXY = nodeXY
 		self.headerHeight = headerHeight
 		
+		print(len(can.find_withtag(self.name)))
 		#check if valid name
 		length = len(self.name)
 		if (length <= 3) or (length > 64):
-			print("Error: name length out of bounds")
+			Report(msg="Name length out of bounds", caller="Node")
 			pass
 		elif re.match('^[\w-]+$', self.name) is None:
-			print("Error: name contains non alphanumeric characters")
+			Report(msg="Name contains non alphanumeric characters", caller="Node")
 			pass
-		#create GUI
-		else:
-			#Body
-			can.create_rectangle((nodeXY[0], nodeXY[1]), (nodeXY[2], nodeXY[3]), fill=bodyFill, outline="#9d9d9d", activefill="#9d9d9d", tag=self.name)
-			can.tag_bind(self.name, "<Button-1>", self.clickNode)
-			can.tag_bind(self.name, "<B1-Motion>", self.dragNode)
+		elif len(can.find_withtag(self.name)) >= 0:
+			Report(msg="Name already exists", caller="Node", msgType=2)
+			conflict = True
+			count = 1
+			while conflict is True:
+				name = self.name + "_" + str(count)
+				count += 1
+				if len(can.find_withtag(name)) == 0:
+					self.name = name
+					conflict = False
+
+					#create GUI
+					#can.find_all
+					#print(can.find_withtag(all))
+					#Body
+					can.create_rectangle((nodeXY[0], nodeXY[1]), (nodeXY[2], nodeXY[3]), fill=bodyFill, outline="#9d9d9d", activefill="#9d9d9d", tag=self.name)
+					can.tag_bind(self.name, "<Button-1>", self.clickNode)
+					can.tag_bind(self.name, "<B1-Motion>", self.dragNode)
+					4
+					#Header
+					can.create_rectangle((self.nodeXY[0], self.nodeXY[1]), (self.nodeXY[2], (self.nodeXY[1] + self.headerHeight)), fill="#646464", outline="#646464", tag=self.name)
+					can.create_text(self.nodeXY[0], self.nodeXY[1], anchor="nw", text=self.name, tag=self.name)
 			
-			#Header
-			can.create_rectangle((self.nodeXY[0], self.nodeXY[1]), (self.nodeXY[2], (self.nodeXY[1] + self.headerHeight)), fill="#646464", outline="#646464", tag=self.name)
-			can.create_text(self.nodeXY[0], self.nodeXY[1], anchor="nw", text=self.name, tag=self.name)
+					#anchors
+					while self.anchorIn > 0:
+						startX = self.nodeXY[0] - (self.anchorScale / 2)
+						startY = self.nodeXY[1] + self.headerHeight + ((self.anchorSpace * (self.anchorIn - 1) + self.anchorSpace) + (self.anchorScale * (self.anchorIn - 1)))
+						endPos = startY + self.anchorScale
 			
-			#anchors
-			while self.anchorIn > 0:
-				startX = self.nodeXY[0] - (self.anchorScale / 2)
-				startY = self.nodeXY[1] + self.headerHeight + ((self.anchorSpace * (self.anchorIn - 1) + self.anchorSpace) + (self.anchorScale * (self.anchorIn - 1)))
-				endPos = startY + self.anchorScale
-			
-				can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=bodyFill, outline="#000000", activefill="#DFCA35", tag=self.name)
-				self.anchorIn -= 1
+						can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=bodyFill, outline="#000000", activefill="#DFCA35", tag=self.name)
+						self.anchorIn -= 1
 				
-			while self.anchorOut > 0:
-				startX = self.nodeXY[2] - (self.anchorScale / 2)
-				startY = self.nodeXY[1] + self.headerHeight + ((self.anchorSpace * (self.anchorOut - 1) + self.anchorSpace) + (self.anchorScale * (self.anchorOut - 1)))
-				endPos = startY + self.anchorScale
+					while self.anchorOut > 0:
+						startX = self.nodeXY[2] - (self.anchorScale / 2)
+						startY = self.nodeXY[1] + self.headerHeight + ((self.anchorSpace * (self.anchorOut - 1) + self.anchorSpace) + (self.anchorScale * (self.anchorOut - 1)))
+						endPos = startY + self.anchorScale
 			
-				can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=bodyFill, outline="#000000", activefill="#DFCA35", tag=self.name)
-				self.anchorOut -= 1
+						can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=bodyFill, outline="#000000", activefill="#DFCA35", tag=self.name)
+						self.anchorOut -= 1
 				
-			#self.canvas.tag_bind("node1", "<ButtonRelease-1>", self.releaseNode)
+					#self.canvas.tag_bind("node1", "<ButtonRelease-1>", self.releaseNode)
 		
 	
 	def clickNode(self, event):
