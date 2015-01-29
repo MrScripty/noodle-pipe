@@ -12,7 +12,6 @@ except ImportError:
 	print("Could not locate 're' module")
 	
 
-
 class App:
 	def __init__(self, tk, master=None):
 		
@@ -20,15 +19,9 @@ class App:
 		print("noodle-pipe start")
 		print("-----------------")
 		
-		Report(msgType=2, caller="App", msg="Test")
-		Report(msgType=1)
-		Report(msgType=2)
-		
-		
-		
 		GUI(name="Main")
 		
-		Node(name="dfgh")
+		Node(name="dfh")
 		Node(name="yesterday")
 
 		
@@ -117,59 +110,77 @@ class Node:
 		self.nodeXY = nodeXY
 		self.headerHeight = headerHeight
 		
-		print(len(can.find_withtag(self.name)))
-		#check if valid name
-		length = len(self.name)
+		self.name = self.checkName(nodeName=self.name, nameType=0)
+		
+		if self.name != None:
+			#create GUI
+			#Body
+			can.create_rectangle((nodeXY[0], nodeXY[1]), (nodeXY[2], nodeXY[3]), fill=bodyFill, outline="#9d9d9d", activefill="#9d9d9d", tag=self.name)
+			can.tag_bind(self.name, "<Button-1>", self.clickNode)
+			can.tag_bind(self.name, "<B1-Motion>", self.dragNode)
+		
+			#Header
+			can.create_rectangle((self.nodeXY[0], self.nodeXY[1]), (self.nodeXY[2], (self.nodeXY[1] + self.headerHeight)), fill="#646464", outline="#646464", tag=self.name)
+			can.create_text(self.nodeXY[0], self.nodeXY[1], anchor="nw", text=self.name, tag=self.name)
+
+			#anchors
+			while self.anchorIn > 0:
+				startX = self.nodeXY[0] - (self.anchorScale / 2)
+				startY = self.nodeXY[1] + self.headerHeight + ((self.anchorSpace * (self.anchorIn - 1) + self.anchorSpace) + (self.anchorScale * (self.anchorIn - 1)))
+				endPos = startY + self.anchorScale
+
+				can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=bodyFill, outline="#000000", activefill="#DFCA35", tag=self.name)
+				self.anchorIn -= 1
+	
+			while self.anchorOut > 0:
+				startX = self.nodeXY[2] - (self.anchorScale / 2)
+				startY = self.nodeXY[1] + self.headerHeight + ((self.anchorSpace * (self.anchorOut - 1) + self.anchorSpace) + (self.anchorScale * (self.anchorOut - 1)))
+				endPos = startY + self.anchorScale
+
+				can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=bodyFill, outline="#000000", activefill="#DFCA35", tag=self.name)
+				self.anchorOut -= 1
+	
+			#self.canvas.tag_bind("node1", "<ButtonRelease-1>", self.releaseNode)
+		
+	
+	#can.find_all
+	#print(can.find_withtag(all))
+	def checkName(self, nodeName, nameType=0):
+		#non type specific errors
+		length = len(nodeName)
 		if (length <= 3) or (length > 64):
 			Report(msg="Name length out of bounds", caller="Node")
+			return(None)
 			pass
 		elif re.match('^[\w-]+$', self.name) is None:
 			Report(msg="Name contains non alphanumeric characters", caller="Node")
+			return(None)
 			pass
-		elif len(can.find_withtag(self.name)) >= 0:
-			Report(msg="Name already exists", caller="Node", msgType=2)
-			conflict = True
-			count = 1
-			while conflict is True:
-				name = self.name + "_" + str(count)
-				count += 1
-				if len(can.find_withtag(name)) == 0:
-					self.name = name
-					conflict = False
-
-					#create GUI
-					#can.find_all
-					#print(can.find_withtag(all))
-					#Body
-					can.create_rectangle((nodeXY[0], nodeXY[1]), (nodeXY[2], nodeXY[3]), fill=bodyFill, outline="#9d9d9d", activefill="#9d9d9d", tag=self.name)
-					can.tag_bind(self.name, "<Button-1>", self.clickNode)
-					can.tag_bind(self.name, "<B1-Motion>", self.dragNode)
-					4
-					#Header
-					can.create_rectangle((self.nodeXY[0], self.nodeXY[1]), (self.nodeXY[2], (self.nodeXY[1] + self.headerHeight)), fill="#646464", outline="#646464", tag=self.name)
-					can.create_text(self.nodeXY[0], self.nodeXY[1], anchor="nw", text=self.name, tag=self.name)
-			
-					#anchors
-					while self.anchorIn > 0:
-						startX = self.nodeXY[0] - (self.anchorScale / 2)
-						startY = self.nodeXY[1] + self.headerHeight + ((self.anchorSpace * (self.anchorIn - 1) + self.anchorSpace) + (self.anchorScale * (self.anchorIn - 1)))
-						endPos = startY + self.anchorScale
-			
-						can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=bodyFill, outline="#000000", activefill="#DFCA35", tag=self.name)
-						self.anchorIn -= 1
-				
-					while self.anchorOut > 0:
-						startX = self.nodeXY[2] - (self.anchorScale / 2)
-						startY = self.nodeXY[1] + self.headerHeight + ((self.anchorSpace * (self.anchorOut - 1) + self.anchorSpace) + (self.anchorScale * (self.anchorOut - 1)))
-						endPos = startY + self.anchorScale
-			
-						can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=bodyFill, outline="#000000", activefill="#DFCA35", tag=self.name)
-						self.anchorOut -= 1
-				
-					#self.canvas.tag_bind("node1", "<ButtonRelease-1>", self.releaseNode)
+		#Type specific errors
+		elif nameType is 0:
+			if len(can.find_withtag(nodeName)) > 0:
+				conflict = True
+				count = 1
+				while conflict is True:
+					nameOut = nodeName + "_" + str(count)
+					count += 1
+					if len(can.find_withtag(nameOut)) == 0:
+						return(nameOut)
+						conflict = False
+			else:
+				nameOut = nodeName
+				return(nameOut)
+		#Anchor	
+		elif nameType is 1:
+			pass
+		elif nameType is 2:
+			pass
+		
 		
 	
+	
 	def clickNode(self, event):
+        	can.tag_raise(self.name)
         	self.startX = event.x
         	self.startY = event.y
 
