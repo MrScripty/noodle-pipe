@@ -20,6 +20,7 @@ class App:
 		print("-----------------")
 		
 		GUI(name="Main")
+		can.focus_force()
 		
 		Node(name="dfh")
 		Node(name="yesterday")
@@ -76,13 +77,20 @@ class GUI:
 		self.canvas.bind("<Button-1>", self.start_line)
 		self.canvas.bind("<B1-Motion>", self.draw_line)
 		self.canvas.bind("<MouseWheel>", self.onMouseWheel)
+		#self.canvas.bind("<Shift_L>", self.onShift)
 		
 
-	def onMouseWheel(self):
-		print("You used the scroll wheel!")
+	def onShift(self, event):
+		print("Shifty")
+
+
+	def onMouseWheel(self, event):
+		print("This doesnt work")
 		
 		
 	def rightClickMenu(self, event):
+		self.canvas.focus_force()
+		print("Why!?!")
 		self.nodeMenu.tk_popup(event.x_root, event.y_root)
 	
 	
@@ -115,21 +123,29 @@ class Node:
 		if self.name != None:
 			#create GUI
 			#Body
-			can.create_rectangle((nodeXY[0], nodeXY[1]), (nodeXY[2], nodeXY[3]), fill=bodyFill, outline="#9d9d9d", activefill="#9d9d9d", tag=self.name)
-			can.tag_bind(self.name, "<Button-1>", self.clickNode)
-			can.tag_bind(self.name, "<B1-Motion>", self.dragNode)
+			bodyTag = self.name + "_body"
+			can.create_rectangle((nodeXY[0], nodeXY[1]), (nodeXY[2], nodeXY[3]), fill=bodyFill, outline="#9d9d9d", activefill="#9d9d9d", tag=(self.name, bodyTag))
+			can.tag_bind(bodyTag, "<Button-1>", self.clickNode)
+			can.tag_bind(bodyTag, "<B1-Motion>", self.dragNode)
+			
+			#scriptEditor
+			#self.canvas.bind("<Tab>", self.onShift)
 		
 			#Header
-			can.create_rectangle((self.nodeXY[0], self.nodeXY[1]), (self.nodeXY[2], (self.nodeXY[1] + self.headerHeight)), fill="#646464", outline="#646464", tag=self.name)
+			can.create_rectangle((self.nodeXY[0], self.nodeXY[1]), (self.nodeXY[2], (self.nodeXY[1] + self.headerHeight)), fill="#646464", outline="#646464", tag=(self.name, "header"))
 			can.create_text(self.nodeXY[0], self.nodeXY[1], anchor="nw", text=self.name, tag=self.name)
 
 			#anchors
 			while self.anchorIn > 0:
+				anchorInTag = self.name + "_anchorIn_" + str(self.anchorIn)
 				startX = self.nodeXY[0] - (self.anchorScale / 2)
 				startY = self.nodeXY[1] + self.headerHeight + ((self.anchorSpace * (self.anchorIn - 1) + self.anchorSpace) + (self.anchorScale * (self.anchorIn - 1)))
 				endPos = startY + self.anchorScale
 
-				can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=bodyFill, outline="#000000", activefill="#DFCA35", tag=self.name)
+				can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=bodyFill, outline="#000000", activefill="#DFCA35", tag=(self.name, anchorInTag))
+				can.tag_bind(anchorInTag, "<Button-1>", self.clickAnchor)
+				can.tag_bind(anchorInTag, "<B1-Motion>", self.dragAnchor)
+				#self.bind_class("mytag", "<Button-1>", self.clickAnchor)
 				self.anchorIn -= 1
 	
 			while self.anchorOut > 0:
@@ -137,7 +153,10 @@ class Node:
 				startY = self.nodeXY[1] + self.headerHeight + ((self.anchorSpace * (self.anchorOut - 1) + self.anchorSpace) + (self.anchorScale * (self.anchorOut - 1)))
 				endPos = startY + self.anchorScale
 
-				can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=bodyFill, outline="#000000", activefill="#DFCA35", tag=self.name)
+				anchorOutTag = self.name + "_anchorOut_" + str(self.anchorOut)
+				can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=bodyFill, outline="#000000", activefill="#DFCA35", tag=(self.name, anchorOutTag))
+				can.tag_bind(anchorOutTag, "<Button-1>", self.clickAnchor)
+				can.tag_bind(anchorOutTag, "<B1-Motion>", self.dragAnchor)
 				self.anchorOut -= 1
 	
 			#self.canvas.tag_bind("node1", "<ButtonRelease-1>", self.releaseNode)
@@ -177,8 +196,6 @@ class Node:
 			pass
 		
 		
-	
-	
 	def clickNode(self, event):
         	can.tag_raise(self.name)
         	self.startX = event.x
@@ -190,6 +207,18 @@ class Node:
 		can.move(self.name, (event.x - self.startX), (event.y - self.startY))
 		self.startX = event.x
 		self.startY = event.y
+		
+		
+	def clickAnchor(self, event):
+        	self.startX = event.x
+        	self.startY = event.y
+        	print("You clicked an anchor!")
+        	can.create_line(event.x, event.y, event.x, event.y, fill="Yellow", width="1", tag="noodle")
+
+
+	def dragAnchor(self, event):
+		can.coords("noodle", self.startX, self.startY, event.x, event.y)
+		#can.create_line(self.startX, self.startY, event.x, event.y, fill="Yellow", width="1", tag="spam")
 		
 		
 class Report:
