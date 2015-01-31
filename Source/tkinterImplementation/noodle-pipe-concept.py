@@ -239,16 +239,22 @@ class Node:
 						self.stop[0] += (self.anchorScale / 2) - 1
 						self.stop[1] += (self.anchorScale / 2) - 1
 						can.coords("noodle", self.start[0], self.start[1], self.stop[0], self.stop[1])
+						
 						break
 					else:
 						can.coords(self.noodle, self.start[0], self.start[1], event.x, event.y)
-						can.config(fill="Red")
+						#can.config(fill="Red")
 						break
 		else:
 			can.coords("noodle", self.start[0], self.start[1], event.x, event.y)
 		
 		
 	def releaseAnchor(self, event):
+		pass
+		
+		
+	def getNoodleConnect(self):
+		print("getNoodleEvent")
 		pass
 		
 		#can.coords("noodle", self.start[0], self.start[1], self.stop[0], self.stop[1])
