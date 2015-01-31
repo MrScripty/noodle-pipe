@@ -66,7 +66,7 @@ class GUI:
 		self.frame.pack(fill=BOTH, expand=True)
 		self.initial = (0, 0)
 		
-		#create right click menu
+		#create right click
 		#Note: lambda is required to pass a arg in add_command
 		self.nodeMenu = Menu(self.frame)
 		self.nodeMenu.add_command(label="Devel-01", command=(lambda:Node(name="yesterday")))
@@ -74,8 +74,8 @@ class GUI:
 		
 		#Bind canvas
 		self.canvas.bind("<Button-3>", self.rightClickMenu)
-		self.canvas.bind("<Button-1>", self.start_line)
-		self.canvas.bind("<B1-Motion>", self.draw_line)
+		#self.canvas.bind("<Button-1>", self.start_line)
+		#self.canvas.bind("<B1-Motion>", self.draw_line)
 		self.canvas.bind("<MouseWheel>", self.onMouseWheel)
 		#self.canvas.bind("<Shift_L>", self.onShift)
 		
@@ -89,8 +89,7 @@ class GUI:
 		
 		
 	def rightClickMenu(self, event):
-		self.canvas.focus_force()
-		print("Why!?!")
+		#self.canvas.focus_force()
 		self.nodeMenu.tk_popup(event.x_root, event.y_root)
 	
 	
@@ -117,6 +116,8 @@ class Node:
 		self.anchorScale = anchorScale
 		self.nodeXY = nodeXY
 		self.headerHeight = headerHeight
+		self.stop = [0, 0]
+		self.noodle = None
 		
 		self.name = self.checkName(nodeName=self.name, nameType=0)
 		
@@ -127,7 +128,8 @@ class Node:
 			can.create_rectangle((nodeXY[0], nodeXY[1]), (nodeXY[2], nodeXY[3]), fill=bodyFill, outline="#9d9d9d", activefill="#9d9d9d", tag=(self.name, bodyTag))
 			can.tag_bind(bodyTag, "<Button-1>", self.clickNode)
 			can.tag_bind(bodyTag, "<B1-Motion>", self.dragNode)
-			
+			can.tag_bind(bodyTag, "<Double-Button-1>", self.deleteNode)
+		
 			#scriptEditor
 			#self.canvas.bind("<Tab>", self.onShift)
 		
@@ -145,6 +147,7 @@ class Node:
 				can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=bodyFill, outline="#000000", activefill="#DFCA35", tag=(self.name, anchorInTag))
 				can.tag_bind(anchorInTag, "<Button-1>", self.clickAnchor)
 				can.tag_bind(anchorInTag, "<B1-Motion>", self.dragAnchor)
+				can.tag_bind(anchorInTag, "<ButtonRelease-1>", self.releaseAnchor)
 				#self.bind_class("mytag", "<Button-1>", self.clickAnchor)
 				self.anchorIn -= 1
 	
@@ -195,7 +198,11 @@ class Node:
 		elif nameType is 2:
 			pass
 		
-		
+	
+	def deleteNode(self, event):
+		can.delete(self.name)
+	
+				
 	def clickNode(self, event):
         	can.tag_raise(self.name)
         	self.startX = event.x
@@ -210,15 +217,41 @@ class Node:
 		
 		
 	def clickAnchor(self, event):
-        	self.startX = event.x
-        	self.startY = event.y
-        	print("You clicked an anchor!")
-        	can.create_line(event.x, event.y, event.x, event.y, fill="Yellow", width="1", tag="noodle")
+        	self.start = can.coords(can.find_closest(event.x, event.y))
+        	self.start[0] += self.anchorScale / 2
+        	self.start[1] += self.anchorScale / 2
+        	self.noodle = can.create_line(self.start[0], self.start[1], event.x, event.y, fill="Yellow", width="1", tag="noodle")
+        	can.tag_raise("noodle")
 
 
 	def dragAnchor(self, event):
-		can.coords("noodle", self.startX, self.startY, event.x, event.y)
-		#can.create_line(self.startX, self.startY, event.x, event.y, fill="Yellow", width="1", tag="spam")
+		#get id's of items under cursor
+		idList = can.find_overlapping(event.x, event.y, event.x, event.y)
+		#Test if id is a anchorIn and return xy
+		if len(idList) > 0:
+			for items in idList:
+				item = can.itemcget(items, "tag")
+				for tags in item:
+					if "anchorIn" in item:
+						#Get coords of anchor
+						self.stop = can.coords(items)
+						#Snap noodle to center of anchor
+						self.stop[0] += (self.anchorScale / 2) - 1
+						self.stop[1] += (self.anchorScale / 2) - 1
+						can.coords("noodle", self.start[0], self.start[1], self.stop[0], self.stop[1])
+						break
+					else:
+						can.coords(self.noodle, self.start[0], self.start[1], event.x, event.y)
+						can.config(fill="Red")
+						break
+		else:
+			can.coords("noodle", self.start[0], self.start[1], event.x, event.y)
+		
+		
+	def releaseAnchor(self, event):
+		pass
+		
+		#can.coords("noodle", self.start[0], self.start[1], self.stop[0], self.stop[1])
 		
 		
 class Report:
