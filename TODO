@@ -14,6 +14,7 @@ node functionality:
 	Pass data between nodes via noodle
 	
 canvas:
+	scrolling canvas
 	snap align nodes 
 	Done : Add grid pattern
 	Done : Add right click menu for node list
