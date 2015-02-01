@@ -121,6 +121,11 @@ class Node:
 		self.headerHeight = headerHeight
 		self.stop = [0, 0]
 		self.noodle = None
+		self.noodleTag = None
+		self.nodeBody = None
+		self.noodlesIn, self.noodlesOut = [], []
+		self.anchorInXY, self.anchorOutXY = [], []
+		self.noodleInStartXY, self.noodleOutStartXY = [], []
 		
 		self.name = self.checkName(nodeName=self.name, nameType=0)
 		
@@ -128,7 +133,7 @@ class Node:
 			#create GUI
 			#Body
 			bodyTag = self.name + "_body"
-			can.create_rectangle((nodeXY[0], nodeXY[1]), (nodeXY[2], nodeXY[3]), fill=bodyFill, outline="#9d9d9d", activefill="#9d9d9d", tag=(self.name, bodyTag))
+			self.nodeBody = can.create_rectangle((nodeXY[0], nodeXY[1]), (nodeXY[2], nodeXY[3]), fill=bodyFill, outline="#9d9d9d", activefill="#9d9d9d", tag=(self.name, bodyTag))
 			can.tag_bind(bodyTag, "<Button-1>", self.clickNode)
 			can.tag_bind(bodyTag, "<B1-Motion>", self.dragNode)
 			can.tag_bind(bodyTag, "<Double-Button-1>", self.deleteNode)
@@ -150,8 +155,7 @@ class Node:
 				can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=bodyFill, outline="#000000", activefill="#DFCA35", tag=(self.name, anchorInTag))
 				can.tag_bind(anchorInTag, "<Button-1>", self.clickAnchor)
 				can.tag_bind(anchorInTag, "<B1-Motion>", self.dragAnchor)
-				can.tag_bind(anchorInTag, "<ButtonRelease-1>", self.releaseAnchor)
-				#self.bind_class("mytag", "<Button-1>", self.clickAnchor)
+				#can.tag_bind(anchorInTag, "<ButtonRelease-1>", self.releaseAnchor)
 				self.anchorIn -= 1
 	
 			while self.anchorOut > 0:
@@ -163,9 +167,8 @@ class Node:
 				can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=bodyFill, outline="#000000", activefill="#DFCA35", tag=(self.name, anchorOutTag))
 				can.tag_bind(anchorOutTag, "<Button-1>", self.clickAnchor)
 				can.tag_bind(anchorOutTag, "<B1-Motion>", self.dragAnchor)
+				#can.tag_bind(anchorInTag, "<ButtonRelease-1>", self.releaseAnchor)
 				self.anchorOut -= 1
-	
-			#self.canvas.tag_bind("node1", "<ButtonRelease-1>", self.releaseNode)
 		
 	
 	#can.find_all
@@ -205,20 +208,69 @@ class Node:
 	def deleteNode(self, event):
 		can.delete(self.name)
 	
-				
+					
 	def clickNode(self, event):
-        	can.tag_raise(self.name)
-        	self.startX = event.x
-        	self.startY = event.y
+		can.tag_raise(self.name)
+		#get XY of event
+		self.startX, self.startY = event.x, event.y
+		
+		#create a list of anchorIns and anchorOuts
+		nodeBodyXY = can.coords(self.nodeBody)
+		idList = can.find_overlapping(nodeBodyXY[0], nodeBodyXY[1], nodeBodyXY[2], nodeBodyXY[3])
+		for items in idList:
+			if "anchorIn" in can.itemcget(items, "tag"):
+				self.anchorInXY.append(items)
+			if "anchorOut" in can.itemcget(items, "tag"):
+				self.anchorOutXY.append(items)
+		
+		#Required to find relations across nodes
+		#Determine which in and outs have a noodle and store the noodle id
+		for anchors in self.anchorInXY:
+			anchorXY = can.coords(anchors)
+			idList = can.find_overlapping(anchorXY[0], anchorXY[1], anchorXY[2], anchorXY[3])
+			#anchors will not handel properly if outside node body
+			for items in idList:
+				item = can.itemcget(items, "tag")
+				if "noodle" in item:
+					self.noodlesIn.append(items)
+		for anchors in self.anchorOutXY:
+			anchorXY = can.coords(anchors)
+			idList = can.find_overlapping(anchorXY[0], anchorXY[1], anchorXY[2], anchorXY[3])
+			for items in idList:
+				item = can.itemcget(items, "tag")
+				if "noodle" in item:
+					self.noodlesOut.append(items)
+		
+		#Required to drag noodles with node			
+		#Get start positions of noodles
+		for noodles in self.noodlesIn:
+			self.noodleInStartXY.append(can.coords(noodles))
+		for noodles in self.noodlesOut:
+			self.noodleOutStartXY.append(can.coords(noodles))
 
 
 	def dragNode(self, event):
-		x, y, _, _ = can.coords(self.name)
-		can.move(self.name, (event.x - self.startX), (event.y - self.startY))
+		#Move node
+		offsetXY = ((event.x - self.startX), (event.y - self.startY))
+		can.move(self.name, offsetXY[0], offsetXY[1])
 		self.startX = event.x
 		self.startY = event.y
 		
-		
+		#move noodles
+		noodleCount = len(self.noodlesIn)
+		if noodleCount > 0:
+			count = 0
+			for noodles in self.noodlesIn:
+				print(event.x)
+				print(self.noodleInStartXY[count][1])
+				can.coords(noodles, self.noodleInStartXY[count][0], self.noodleInStartXY[count][1], (self.noodleInStartXY[count][2] - event.x), (self.noodleInStartXY[count][3] - event.y))
+				#self.noodleInStartXY[count][2] -= event.x
+				#self.noodleInStartXY[count][3] -= event.y
+				count += 1
+			for noodles in self.noodlesOut:
+				pass
+				
+			
 	def clickAnchor(self, event):
 		#Set start XY
 		self.start = can.coords(can.find_closest(event.x, event.y))
@@ -226,39 +278,55 @@ class Node:
 		self.start[1] += self.anchorScale / 2
 		
 		#Generate noodle name
-		noodleTag = self.name + "_noodle_" + str(can.find_withtag("current")[0])
-		noodelTag = self.checkName(nodeName=noodleTag, nameType=0)
+		self.noodleTag = self.name + "_noodle_" + str(can.find_withtag("current")[0])
+		self.noodelTag = self.checkName(nodeName=self.noodleTag, nameType=0)
 		
 		#create noodle
-		self.noodle = can.create_line(self.start[0], self.start[1], event.x, event.y, fill="#737373", width="2", tag=noodleTag)
+		self.noodle = can.create_line(self.start[0], self.start[1], event.x, event.y, fill="#737373", width="2", tag=self.noodleTag)
 		
 		
 	def dragAnchor(self, event):
 		#get id's of items under cursor
 		idList = can.find_overlapping(event.x, event.y, event.x, event.y)
+		#idList = can.find_closest(event.x, event.y)
 		#Test if id is a anchorIn and return xy
 		if len(idList) > 0:
 			for items in idList:
 				item = can.itemcget(items, "tag")
 				for tags in item:
-					if "anchorIn" in item:
+					#Fixes a problem where time delay allows the cursor to momentarly be ontop of the noodle
+					if self.noodleTag in item:
+						pass
+					#The not prevents nodes from feeding into themselves
+					elif ("anchorIn" in item) and not (self.name in item):
 						#Get coords of anchor
 						self.stop = can.coords(items)
 						#Snap noodle to center of anchor
 						self.stop[0] += (self.anchorScale / 2)
 						self.stop[1] += (self.anchorScale / 2)
+						can.itemconfig(self.noodle, fill="#62735B")
 						can.coords(self.noodle, self.start[0], self.start[1], self.stop[0], self.stop[1])
-						
 						break
 					else:
+						can.itemconfig(self.noodle, fill="#735E5B")
 						can.coords(self.noodle, self.start[0], self.start[1], event.x, event.y)
-						#can.config(fill="Red")
 						break
 		else:
+			can.itemconfig(self.noodle, fill="#737373")		
 			can.coords(self.noodle, self.start[0], self.start[1], event.x, event.y)
 		
 		
 	def releaseAnchor(self, event):
+		idList = can.find_overlapping(event.x, event.y, event.x, event.y)
+		print(idList)
+		print("yes")
+		if len(idList) > 0:
+			for items in idList:
+				item = can.itemcget(items, "tag")
+				for tags in item:
+					if ("anchorIn" not in item) or ("anchorOut" not in item):
+						can.delete(self.noodle)
+		
 		pass
 		
 		
