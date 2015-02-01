@@ -22,23 +22,26 @@ class App:
 		GUI(name="Main")
 		can.focus_force()
 		
-		Node(name="dfh")
-		Node(name="yesterday")
+		Node(name="developer")
 
 		
 class GUI:
-	def __init__(self, name, x=1280, y=720, canvasFill="#393939", gridSpace=17, gridFill="#2f2f2f"):
+	def __init__(self, name, x=None, y=None, canvasFill="#393939", gridSpace=17, gridFill="#2f2f2f"):
 		#variables
 		global can
-		self.x = x
-		self.y = y
 		self.canvasFill = canvasFill
 		self.gridSpace = gridSpace
 		self.gridFill = gridFill
+		if x or y is None:
+			pass
+			self.x, self.y = (tk.winfo_screenwidth(), tk.winfo_screenheight())
+		else:
+			self.x = x
+			self.y = y
 		
 		#Create canvas
 		self.frame = Frame(tk)
-		can = self.canvas = Canvas(self.frame, width=self.x, height=self.y, bg=self.canvasFill)
+		can = self.canvas = Canvas(self.frame, width=self.x, height=self.y, bg=self.canvasFill, scrollregion=(0, 0, 1000, 1000))
 		self.canvas.grid(row=0, column=0)
 		
 		#Draw grid
@@ -69,8 +72,8 @@ class GUI:
 		#create right click
 		#Note: lambda is required to pass a arg in add_command
 		self.nodeMenu = Menu(self.frame)
-		self.nodeMenu.add_command(label="Devel-01", command=(lambda:Node(name="yesterday")))
-		self.nodeMenu.add_command(label="Devel-02", command=(lambda:Node(name="Shwoola")))
+		self.nodeMenu.add_command(label="Devel-01", command=(lambda:Node(name="testOne")))
+		self.nodeMenu.add_command(label="Devel-02", command=(lambda:Node(name="testTwo")))
 		
 		#Bind canvas
 		self.canvas.bind("<Button-3>", self.rightClickMenu)
@@ -139,11 +142,11 @@ class Node:
 
 			#anchors
 			while self.anchorIn > 0:
-				anchorInTag = self.name + "_anchorIn_" + str(self.anchorIn)
 				startX = self.nodeXY[0] - (self.anchorScale / 2)
 				startY = self.nodeXY[1] + self.headerHeight + ((self.anchorSpace * (self.anchorIn - 1) + self.anchorSpace) + (self.anchorScale * (self.anchorIn - 1)))
 				endPos = startY + self.anchorScale
-
+				
+				anchorInTag = self.name + "_anchorIn_" + str(self.anchorIn)
 				can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=bodyFill, outline="#000000", activefill="#DFCA35", tag=(self.name, anchorInTag))
 				can.tag_bind(anchorInTag, "<Button-1>", self.clickAnchor)
 				can.tag_bind(anchorInTag, "<B1-Motion>", self.dragAnchor)
@@ -171,11 +174,11 @@ class Node:
 		#non type specific errors
 		length = len(nodeName)
 		if (length <= 3) or (length > 64):
-			Report(msg="Name length out of bounds", caller="Node")
+			Report(msg="Name length out of bounds", caller="Node.checkName")
 			return(None)
 			pass
 		elif re.match('^[\w-]+$', self.name) is None:
-			Report(msg="Name contains non alphanumeric characters", caller="Node")
+			Report(msg="Name contains non alphanumeric characters", caller="Node.checkName")
 			return(None)
 			pass
 		#Type specific errors
@@ -217,13 +220,19 @@ class Node:
 		
 		
 	def clickAnchor(self, event):
-        	self.start = can.coords(can.find_closest(event.x, event.y))
-        	self.start[0] += self.anchorScale / 2
-        	self.start[1] += self.anchorScale / 2
-        	self.noodle = can.create_line(self.start[0], self.start[1], event.x, event.y, fill="Yellow", width="1", tag="noodle")
-        	can.tag_raise("noodle")
-
-
+		#Set start XY
+		self.start = can.coords(can.find_closest(event.x, event.y))
+		self.start[0] += self.anchorScale / 2
+		self.start[1] += self.anchorScale / 2
+		
+		#Generate noodle name
+		noodleTag = self.name + "_noodle_" + str(can.find_withtag("current")[0])
+		noodelTag = self.checkName(nodeName=noodleTag, nameType=0)
+		
+		#create noodle
+		self.noodle = can.create_line(self.start[0], self.start[1], event.x, event.y, fill="#737373", width="2", tag=noodleTag)
+		
+		
 	def dragAnchor(self, event):
 		#get id's of items under cursor
 		idList = can.find_overlapping(event.x, event.y, event.x, event.y)
@@ -236,9 +245,9 @@ class Node:
 						#Get coords of anchor
 						self.stop = can.coords(items)
 						#Snap noodle to center of anchor
-						self.stop[0] += (self.anchorScale / 2) - 1
-						self.stop[1] += (self.anchorScale / 2) - 1
-						can.coords("noodle", self.start[0], self.start[1], self.stop[0], self.stop[1])
+						self.stop[0] += (self.anchorScale / 2)
+						self.stop[1] += (self.anchorScale / 2)
+						can.coords(self.noodle, self.start[0], self.start[1], self.stop[0], self.stop[1])
 						
 						break
 					else:
@@ -246,7 +255,7 @@ class Node:
 						#can.config(fill="Red")
 						break
 		else:
-			can.coords("noodle", self.start[0], self.start[1], event.x, event.y)
+			can.coords(self.noodle, self.start[0], self.start[1], event.x, event.y)
 		
 		
 	def releaseAnchor(self, event):
