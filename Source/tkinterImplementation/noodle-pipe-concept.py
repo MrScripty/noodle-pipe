@@ -72,8 +72,8 @@ class GUI:
 		#create right click
 		#Note: lambda is required to pass a arg in add_command
 		self.nodeMenu = Menu(self.frame)
-		self.nodeMenu.add_command(label="Devel-01", command=(lambda:Node(name="testOne")))
-		self.nodeMenu.add_command(label="Devel-02", command=(lambda:Node(name="testTwo")))
+		self.nodeMenu.add_command(label="Devel-01", command=(lambda:Node(name="testOne", anchorIn=6, anchorOut=4)))
+		self.nodeMenu.add_command(label="Devel-02", command=(lambda:Node(name="testTwo", anchorIn=2, anchorOut=1)))
 		
 		#Bind canvas
 		self.canvas.bind("<Button-3>", self.rightClickMenu)
@@ -110,13 +110,15 @@ class GUI:
 
 	
 class Node:
-	def __init__(self, name, anchorIn=4, anchorOut=2, anchorScale=12, anchorSpace=10, anchorFill="#DFCA35", bodyFill="#9B9B9B", nodeXY=(100, 100, 200, 300), headerHeight=15):
+	def __init__(self, name, bodyFill="#9B9B9B", nodeXY=(100, 100, 200, 300), headerHeight=15, anchorIn=3, anchorOut=3, anchorScale=12, anchorSpace=10, anchorFill="#DFCA35"):
 		#variables
-		self.name = name
+		self.name = name 
+		self.bodyFill = bodyFill
 		self.anchorIn = anchorIn
 		self.anchorOut = anchorOut
 		self.anchorSpace = anchorSpace
 		self.anchorScale = anchorScale
+		self.anchorFill = anchorFill
 		self.nodeXY = nodeXY
 		self.headerHeight = headerHeight
 		self.stop = [0, 0]
@@ -126,14 +128,19 @@ class Node:
 		self.noodlesIn, self.noodlesOut = [], []
 		self.anchorInXY, self.anchorOutXY = [], []
 		self.noodleInStartXY, self.noodleOutStartXY = [], []
+		self.anchorInList, self.anchorOutList = [], []
 		
-		self.name = self.checkName(nodeName=self.name, nameType=0)
-		
+		self.newNode(name=self.name)
+		#self.anchor(anchorIn=-1, anchorOut=0)
+	
+	
+	def newNode(self, name=None):
+		self.name = self.checkName(nodeName=name, nameType=0)
 		if self.name != None:
 			#create GUI
 			#Body
 			bodyTag = self.name + "_body"
-			self.nodeBody = can.create_rectangle((nodeXY[0], nodeXY[1]), (nodeXY[2], nodeXY[3]), fill=bodyFill, outline="#9d9d9d", activefill="#9d9d9d", tag=(self.name, bodyTag))
+			self.nodeBody = can.create_rectangle((self.nodeXY[0], self.nodeXY[1]), (self.nodeXY[2], self.nodeXY[3]), fill=self.bodyFill, outline="#9d9d9d", activefill="#9d9d9d", tag=(self.name, bodyTag))
 			can.tag_bind(bodyTag, "<Button-1>", self.clickNode)
 			can.tag_bind(bodyTag, "<B1-Motion>", self.dragNode)
 			can.tag_bind(bodyTag, "<Double-Button-1>", self.deleteNode)
@@ -144,32 +151,57 @@ class Node:
 			#Header
 			can.create_rectangle((self.nodeXY[0], self.nodeXY[1]), (self.nodeXY[2], (self.nodeXY[1] + self.headerHeight)), fill="#646464", outline="#646464", tag=(self.name, "header"))
 			can.create_text(self.nodeXY[0], self.nodeXY[1], anchor="nw", text=self.name, tag=self.name)
-
-			#anchors
-			while self.anchorIn > 0:
-				startX = self.nodeXY[0] - (self.anchorScale / 2)
-				startY = self.nodeXY[1] + self.headerHeight + ((self.anchorSpace * (self.anchorIn - 1) + self.anchorSpace) + (self.anchorScale * (self.anchorIn - 1)))
-				endPos = startY + self.anchorScale
-				
-				anchorInTag = self.name + "_anchorIn_" + str(self.anchorIn)
-				can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=bodyFill, outline="#000000", activefill="#DFCA35", tag=(self.name, anchorInTag))
-				can.tag_bind(anchorInTag, "<Button-1>", self.clickAnchor)
-				can.tag_bind(anchorInTag, "<B1-Motion>", self.dragAnchor)
-				#can.tag_bind(anchorInTag, "<ButtonRelease-1>", self.releaseAnchor)
-				self.anchorIn -= 1
-	
-			while self.anchorOut > 0:
-				startX = self.nodeXY[2] - (self.anchorScale / 2)
-				startY = self.nodeXY[1] + self.headerHeight + ((self.anchorSpace * (self.anchorOut - 1) + self.anchorSpace) + (self.anchorScale * (self.anchorOut - 1)))
-				endPos = startY + self.anchorScale
-
-				anchorOutTag = self.name + "_anchorOut_" + str(self.anchorOut)
-				can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=bodyFill, outline="#000000", activefill="#DFCA35", tag=(self.name, anchorOutTag))
-				can.tag_bind(anchorOutTag, "<Button-1>", self.clickAnchor)
-				can.tag_bind(anchorOutTag, "<B1-Motion>", self.dragAnchor)
-				#can.tag_bind(anchorInTag, "<ButtonRelease-1>", self.releaseAnchor)
-				self.anchorOut -= 1
+			
+			self.anchor(anchorIn=self.anchorIn, anchorOut=self.anchorOut)
+			#anchor(anchorIn=self.anchorIn, anchorOut=self.anchorOut, anchorScale=self.anchorScale, anchorSpace=self.anchorSpace, anchorFill="#9B9B9B")
+			
+	def anchor(self, anchorIn, anchorOut):		
+		print(anchorIn)
+		print(anchorOut)
 		
+		#Create inputs
+		while anchorIn > 0:
+			#get XY of anchor
+			startX = self.nodeXY[0] - (self.anchorScale / 2)
+			startY = self.nodeXY[1] + self.headerHeight + ((self.anchorSpace * (anchorIn - 1) + self.anchorSpace) + (self.anchorScale * (anchorIn - 1)))
+			endPos = startY + self.anchorScale
+			
+			#Generate a unique tag
+			anchorInTag = self.name + "_anchorIn_" + str(self.anchorIn)
+			
+			#Create anchor and add to list
+			self.anchorInList.append(can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=self.bodyFill, outline="#000000", activefill="#DFCA35", tag=(self.name, anchorInTag)))
+			print("yes")
+			#Add key bindings
+			can.tag_bind(anchorInTag, "<Button-1>", self.clickAnchor)
+			can.tag_bind(anchorInTag, "<B1-Motion>", self.dragAnchor)
+			anchorIn -= 1
+		
+		#Remove inputs	
+		while anchorIn < 0:
+			print(self.anchorInList)
+			can.delete(self.anchorInList[-1])
+			print(self.anchorInList)
+			anchorIn += 1
+					
+		#Create outputs
+		while anchorOut > 0:
+			startX = self.nodeXY[2] - (self.anchorScale / 2)
+			startY = self.nodeXY[1] + self.headerHeight + ((self.anchorSpace * (anchorOut - 1) + self.anchorSpace) + (self.anchorScale * (anchorOut - 1)))
+			print(startX)
+			endPos = startY + self.anchorScale
+
+			anchorOutTag = self.name + "_anchorOut_" + str(self.anchorOut)
+			self.anchorOutList.append(can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=self.bodyFill, outline="#000000", activefill="#DFCA35", tag=(self.name, anchorOutTag)))
+			can.tag_bind(anchorOutTag, "<Button-1>", self.clickAnchor)
+			can.tag_bind(anchorOutTag, "<B1-Motion>", self.dragAnchor)
+			anchorOut -= 1
+		
+		#Remove outputs
+		while anchorOut < 0:
+			can.delete(self.anchorOutList[-1])
+			anchorOut += 1
+				
 	
 	#can.find_all
 	#print(can.find_withtag(all))
@@ -253,22 +285,28 @@ class Node:
 		#Move node
 		offsetXY = ((event.x - self.startX), (event.y - self.startY))
 		can.move(self.name, offsetXY[0], offsetXY[1])
-		self.startX = event.x
-		self.startY = event.y
 		
 		#move noodles
-		noodleCount = len(self.noodlesIn)
-		if noodleCount > 0:
+		noodleCount = (len(self.noodlesIn), len(self.noodlesOut))
+		if noodleCount[0] > 0:
 			count = 0
 			for noodles in self.noodlesIn:
-				print(event.x)
-				print(self.noodleInStartXY[count][1])
-				can.coords(noodles, self.noodleInStartXY[count][0], self.noodleInStartXY[count][1], (self.noodleInStartXY[count][2] - event.x), (self.noodleInStartXY[count][3] - event.y))
-				#self.noodleInStartXY[count][2] -= event.x
-				#self.noodleInStartXY[count][3] -= event.y
+				self.noodleInStartXY[count][2] = self.noodleInStartXY[count][2] + (event.x - self.startX)
+				self.noodleInStartXY[count][3] = self.noodleInStartXY[count][3] + (event.y - self.startY)
+				can.coords(noodles, self.noodleInStartXY[count][0], self.noodleInStartXY[count][1], self.noodleInStartXY[count][2], self.noodleInStartXY[count][3])
 				count += 1
+
+		if noodleCount[1] > 0:
+			count = 0	
 			for noodles in self.noodlesOut:
-				pass
+				self.noodleOutStartXY[count][0] = self.noodleOutStartXY[count][0] + (event.x - self.startX)
+				self.noodleOutStartXY[count][1] = self.noodleOutStartXY[count][1] + (event.y - self.startY)
+				can.coords(noodles, self.noodleOutStartXY[count][0], self.noodleOutStartXY[count][1], self.noodleOutStartXY[count][2], self.noodleOutStartXY[count][3])
+				can.coords(noodles, self.noodleOutStartXY[count][0], self.noodleOutStartXY[count][1], self.noodleOutStartXY[count][2], self.noodleOutStartXY[count][3])
+				count += 1
+		
+		self.startX = event.x
+		self.startY = event.y
 				
 			
 	def clickAnchor(self, event):
@@ -276,11 +314,11 @@ class Node:
 		self.start = can.coords(can.find_closest(event.x, event.y))
 		self.start[0] += self.anchorScale / 2
 		self.start[1] += self.anchorScale / 2
-		
+
 		#Generate noodle name
 		self.noodleTag = self.name + "_noodle_" + str(can.find_withtag("current")[0])
 		self.noodelTag = self.checkName(nodeName=self.noodleTag, nameType=0)
-		
+
 		#create noodle
 		self.noodle = can.create_line(self.start[0], self.start[1], event.x, event.y, fill="#737373", width="2", tag=self.noodleTag)
 		
