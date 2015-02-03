@@ -3,8 +3,7 @@ try:
 	##Python 3	
 	from tkinter import *
 except ImportError:
-	##Python 2
-	from Tkinter import *
+	print("Could not load tkinter. Not using Python 3?")
 	
 try:
 	import re
@@ -125,16 +124,15 @@ class Node:
 		self.noodle = None
 		self.noodleTag = None
 		self.nodeBody = None
-		self.noodlesIn, self.noodlesOut = [], []
-		self.anchorInXY, self.anchorOutXY = [], []
-		self.noodleInStartXY, self.noodleOutStartXY = [], []
-		self.anchorInList, self.anchorOutList = [], []
+		self.noodleAnchorInDic, self.noodleAnchorOutDic = {}, {}
+		self.inOut = True
 		
 		self.newNode(name=self.name)
 		#self.anchor(anchorIn=-1, anchorOut=0)
 	
 	
 	def newNode(self, name=None):
+		#print(id(self))
 		self.name = self.checkName(nodeName=name, nameType=0)
 		if self.name != None:
 			#create GUI
@@ -155,10 +153,8 @@ class Node:
 			self.anchor(anchorIn=self.anchorIn, anchorOut=self.anchorOut)
 			#anchor(anchorIn=self.anchorIn, anchorOut=self.anchorOut, anchorScale=self.anchorScale, anchorSpace=self.anchorSpace, anchorFill="#9B9B9B")
 			
+			
 	def anchor(self, anchorIn, anchorOut):		
-		print(anchorIn)
-		print(anchorOut)
-		
 		#Create inputs
 		while anchorIn > 0:
 			#get XY of anchor
@@ -169,9 +165,8 @@ class Node:
 			#Generate a unique tag
 			anchorInTag = self.name + "_anchorIn_" + str(self.anchorIn)
 			
-			#Create anchor and add to list
-			self.anchorInList.append(can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=self.bodyFill, outline="#000000", activefill="#DFCA35", tag=(self.name, anchorInTag)))
-			print("yes")
+			#Create anchor and add to dictionary
+			self.noodleAnchorInDic[can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=self.bodyFill, outline="#000000", activefill="#DFCA35", tag=(self.name, anchorInTag))] = []
 			#Add key bindings
 			can.tag_bind(anchorInTag, "<Button-1>", self.clickAnchor)
 			can.tag_bind(anchorInTag, "<B1-Motion>", self.dragAnchor)
@@ -179,57 +174,55 @@ class Node:
 		
 		#Remove inputs	
 		while anchorIn < 0:
-			print(self.anchorInList)
-			can.delete(self.anchorInList[-1])
-			print(self.anchorInList)
 			anchorIn += 1
 					
 		#Create outputs
 		while anchorOut > 0:
 			startX = self.nodeXY[2] - (self.anchorScale / 2)
 			startY = self.nodeXY[1] + self.headerHeight + ((self.anchorSpace * (anchorOut - 1) + self.anchorSpace) + (self.anchorScale * (anchorOut - 1)))
-			print(startX)
 			endPos = startY + self.anchorScale
-
+			
+			#Generate a unique tag
 			anchorOutTag = self.name + "_anchorOut_" + str(self.anchorOut)
-			self.anchorOutList.append(can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=self.bodyFill, outline="#000000", activefill="#DFCA35", tag=(self.name, anchorOutTag)))
+			
+			self.noodleAnchorOutDic[can.create_oval((startX, startY), (startX + self.anchorScale, endPos), fill=self.bodyFill, outline="#000000", activefill="#DFCA35", tag=(self.name, anchorOutTag))] = []
 			can.tag_bind(anchorOutTag, "<Button-1>", self.clickAnchor)
 			can.tag_bind(anchorOutTag, "<B1-Motion>", self.dragAnchor)
 			anchorOut -= 1
 		
 		#Remove outputs
 		while anchorOut < 0:
-			can.delete(self.anchorOutList[-1])
 			anchorOut += 1
 				
-	
-	#can.find_all
-	#print(can.find_withtag(all))
+		
 	def checkName(self, nodeName, nameType=0):
 		#non type specific errors
+		conflict = False
 		length = len(nodeName)
 		if (length <= 3) or (length > 64):
 			Report(msg="Name length out of bounds", caller="Node.checkName")
 			return(None)
 			pass
-		elif re.match('^[\w-]+$', self.name) is None:
+		elif re.match('^[\w-]+$', nodeName) is None:
 			Report(msg="Name contains non alphanumeric characters", caller="Node.checkName")
 			return(None)
 			pass
 		#Type specific errors
 		elif nameType is 0:
-			if len(can.find_withtag(nodeName)) > 0:
-				conflict = True
-				count = 1
-				while conflict is True:
-					nameOut = nodeName + "_" + str(count)
-					count += 1
-					if len(can.find_withtag(nameOut)) == 0:
-						return(nameOut)
-						conflict = False
-			else:
-				nameOut = nodeName
-				return(nameOut)
+			newName = nodeName
+			nodeName = nodeName + "_001"
+			number = 0
+			while can.find_withtag(nodeName):
+					number += 1 
+					#Add pading to string until its 3 digits long
+					if number < 10:
+						nodeName = newName + "_00" + str(number)
+					if (number < 100) and (number > 9):
+						nodeName = newName + "_0" + str(number)
+					if (number > 99) and (number < 1000):
+						nodeName = newName + "_" + str(number)
+			return(nodeName)
+
 		#Anchor	
 		elif nameType is 1:
 			pass
@@ -242,122 +235,199 @@ class Node:
 	
 					
 	def clickNode(self, event):
+		'''
 		can.tag_raise(self.name)
 		#get XY of event
 		self.startX, self.startY = event.x, event.y
+		'''
+		#dic.iterkeys
+		#dic.itervalues
+		#dic.iteritems
 		
-		#create a list of anchorIns and anchorOuts
-		nodeBodyXY = can.coords(self.nodeBody)
-		idList = can.find_overlapping(nodeBodyXY[0], nodeBodyXY[1], nodeBodyXY[2], nodeBodyXY[3])
-		for items in idList:
-			if "anchorIn" in can.itemcget(items, "tag"):
-				self.anchorInXY.append(items)
-			if "anchorOut" in can.itemcget(items, "tag"):
-				self.anchorOutXY.append(items)
+		#Set motion vector
+		self.startX = event.x
+		self.startY = event.y
 		
-		#Required to find relations across nodes
-		#Determine which in and outs have a noodle and store the noodle id
-		for anchors in self.anchorInXY:
-			anchorXY = can.coords(anchors)
-			idList = can.find_overlapping(anchorXY[0], anchorXY[1], anchorXY[2], anchorXY[3])
-			#anchors will not handel properly if outside node body
-			for items in idList:
-				item = can.itemcget(items, "tag")
-				if "noodle" in item:
-					self.noodlesIn.append(items)
-		for anchors in self.anchorOutXY:
-			anchorXY = can.coords(anchors)
-			idList = can.find_overlapping(anchorXY[0], anchorXY[1], anchorXY[2], anchorXY[3])
-			for items in idList:
-				item = can.itemcget(items, "tag")
-				if "noodle" in item:
-					self.noodlesOut.append(items)
+		#AnchorIn
+		#Test if noodle is atached to anchor and add noodle to dic if true
 		
-		#Required to drag noodles with node			
-		#Get start positions of noodles
-		for noodles in self.noodlesIn:
-			self.noodleInStartXY.append(can.coords(noodles))
-		for noodles in self.noodlesOut:
-			self.noodleOutStartXY.append(can.coords(noodles))
-
+		for keys, values in self.noodleAnchorInDic.items():
+			#get coords of anchor
+			coords = can.coords(keys)
+			#reduce area to check for overlap
+			coords[0] += self.anchorScale / 2 + 1
+			coords[1] += self.anchorScale / 2 + 1
+			coords[2] -= self.anchorScale / 2 + 1
+			coords[3] -= self.anchorScale / 2 + 1
+			#Get overlapping
+			overlap = can.find_overlapping(coords[0], coords[1], coords[2], coords[3])
+			for widgets in overlap:
+				#Test if widget is a noodle
+				if "_noodle_" in can.itemcget(widgets, "tag"):
+					widgetCoords = can.coords(widgets)
+					widgetCoords[2] += self.anchorScale / 2
+					widgetCoords[3] += self.anchorScale / 2
+					#Test if widget is located on anchor
+					if (widgetCoords[0] > coords[0]) and (widgetCoords[1] > coords[1]):
+						#Add noodle to dic
+						widgets = [widgets]
+						#list set will remove duplicate entrys
+						self.noodleAnchorInDic[keys] = list(set(values + widgets))
+						print(self.noodleAnchorInDic)
+		
+		
+		#anchorOut			
+		for keys, values in self.noodleAnchorOutDic.items():
+			#get coords of anchor
+			coords = can.coords(keys)
+			#reduce area to check for overlap
+			coords[0] += self.anchorScale / 2 - 1
+			coords[1] += self.anchorScale / 2 - 1
+			coords[2] += self.anchorScale / 2 + 1
+			coords[3] += self.anchorScale / 2 + 1
+			#Get overlapping
+			overlap = can.find_overlapping(coords[0], coords[1], coords[2], coords[3])
+			for widgets in overlap:
+				#Test if widget is a noodle
+				if "_noodle_" in can.itemcget(widgets, "tag"):
+					widgetCoords = can.coords(widgets)
+					widgetCoords[2] += self.anchorScale / 2
+					widgetCoords[3] += self.anchorScale / 2
+					#Test if widget is located on anchor
+					if (widgetCoords[2] > coords[0]) and (widgetCoords[3] > coords[1]):
+						widgets = [widgets]
+						self.noodleAnchorOutDic[keys] = list(set(values + widgets))
+		
 
 	def dragNode(self, event):
 		#Move node
 		offsetXY = ((event.x - self.startX), (event.y - self.startY))
 		can.move(self.name, offsetXY[0], offsetXY[1])
 		
-		#move noodles
-		noodleCount = (len(self.noodlesIn), len(self.noodlesOut))
-		if noodleCount[0] > 0:
-			count = 0
-			for noodles in self.noodlesIn:
-				self.noodleInStartXY[count][2] = self.noodleInStartXY[count][2] + (event.x - self.startX)
-				self.noodleInStartXY[count][3] = self.noodleInStartXY[count][3] + (event.y - self.startY)
-				can.coords(noodles, self.noodleInStartXY[count][0], self.noodleInStartXY[count][1], self.noodleInStartXY[count][2], self.noodleInStartXY[count][3])
-				count += 1
-
-		if noodleCount[1] > 0:
-			count = 0	
-			for noodles in self.noodlesOut:
-				self.noodleOutStartXY[count][0] = self.noodleOutStartXY[count][0] + (event.x - self.startX)
-				self.noodleOutStartXY[count][1] = self.noodleOutStartXY[count][1] + (event.y - self.startY)
-				can.coords(noodles, self.noodleOutStartXY[count][0], self.noodleOutStartXY[count][1], self.noodleOutStartXY[count][2], self.noodleOutStartXY[count][3])
-				can.coords(noodles, self.noodleOutStartXY[count][0], self.noodleOutStartXY[count][1], self.noodleOutStartXY[count][2], self.noodleOutStartXY[count][3])
-				count += 1
+		#Move noodles
+		#noodleIn
+		for keys, values in self.noodleAnchorInDic.items():
+			if len(values) > 0:
+				for noodle in values:
+					#Get xy for noodle and anchor
+					noodleCoords = can.coords(noodle)
+					anchorCoords = can.coords(keys)
+					#Get center position of anchor
+					anchorCoords[2] -= self.anchorScale / 2
+					anchorCoords[3] -= self.anchorScale / 2
+					#update noodle coords
+					can.coords(noodle, noodleCoords[0], noodleCoords[1], anchorCoords[2], anchorCoords[3])
+					
+		#noodleOut
+		for keys, values in self.noodleAnchorOutDic.items():
+			if values:
+				pass
+			elif len(values) > 0:
+				for noodle in values:
+					#Get xy for noodle and anchor
+					noodleCoords = can.coords(noodle)
+					anchorCoords = can.coords(keys)
+					#Get center position of anchor
+					anchorCoords[0] -= self.anchorScale / 2
+					anchorCoords[1] -= self.anchorScale / 2
+					#update noodle coords
+					can.coords(noodle, noodleCoords[0], noodleCoords[1], anchorCoords[2], anchorCoords[3])
 		
+		#Update motion vector
 		self.startX = event.x
 		self.startY = event.y
 				
 			
 	def clickAnchor(self, event):
-		#Set start XY
-		self.start = can.coords(can.find_closest(event.x, event.y))
+		#Get anchor id
+		self.caller = can.find_withtag("current")[0]
+		
+		#Test if input or output
+		if "anchorOut" in can.itemcget(self.caller, "tag"):
+			self.inOut = True
+		else:
+			self.inOut = False
+		
+		#Get anchor coords
+		self.start = can.coords(self.caller)[0:2]
 		self.start[0] += self.anchorScale / 2
 		self.start[1] += self.anchorScale / 2
 
 		#Generate noodle name
-		self.noodleTag = self.name + "_noodle_" + str(can.find_withtag("current")[0])
-		self.noodelTag = self.checkName(nodeName=self.noodleTag, nameType=0)
-
-		#create noodle
-		self.noodle = can.create_line(self.start[0], self.start[1], event.x, event.y, fill="#737373", width="2", tag=self.noodleTag)
+		self.noodleTag = self.name + "_noodle_" + str(self.caller)
+		self.noodleTag = self.checkName(nodeName=self.noodleTag, nameType=0)
+		
+		#create noodle and add to dictionary
+		self.noodleAnchorOutDic[self.caller] = [can.create_line(self.start[0], self.start[1], event.x, event.y, fill="#737373", width="2", tag=self.noodleTag)]
 		
 		
 	def dragAnchor(self, event):
-		#get id's of items under cursor
-		idList = can.find_overlapping(event.x, event.y, event.x, event.y)
-		#idList = can.find_closest(event.x, event.y)
-		#Test if id is a anchorIn and return xy
-		if len(idList) > 0:
-			for items in idList:
-				item = can.itemcget(items, "tag")
-				for tags in item:
-					#Fixes a problem where time delay allows the cursor to momentarly be ontop of the noodle
-					if self.noodleTag in item:
+		#get id of noodle
+		noodle = self.noodleAnchorOutDic[self.caller][0]
+		#get start coords
+		noodleStartXY = can.coords(noodle)[0:2]
+		#find items under cursor
+		widgetList = can.find_overlapping(event.x, event.y, event.x, event.y)
+		if len(widgetList) > 0:
+			for widgets in widgetList:
+				widgetTags = can.itemcget(widgets, "tag")
+				#Fixes a problem where time delay allows the cursor to momentarly be ontop of the noodle
+				if self.noodleTag in widgetTags:
 						pass
-					#The not prevents nodes from feeding into themselves
-					elif ("anchorIn" in item) and not (self.name in item):
-						#Get coords of anchor
-						self.stop = can.coords(items)
-						#Snap noodle to center of anchor
-						self.stop[0] += (self.anchorScale / 2)
-						self.stop[1] += (self.anchorScale / 2)
-						can.itemconfig(self.noodle, fill="#62735B")
-						can.coords(self.noodle, self.start[0], self.start[1], self.stop[0], self.stop[1])
-						break
+				#Prevent node from feeding into itself
+				elif (self.name in widgetTags):
+					#Set noodle color red
+					can.itemconfig(noodle, fill="#735E5B")
+					#move noodle
+					if self.inOut is True:
+						can.coords(noodle, self.start[0], self.start[1], event.x, event.y)
 					else:
-						can.itemconfig(self.noodle, fill="#735E5B")
-						can.coords(self.noodle, self.start[0], self.start[1], event.x, event.y)
-						break
+						can.coords(noodle, event.x, event.y, self.start[0], self.start[1])
+				#Check if widget is an input anchor
+				elif "_anchorIn_" in widgetTags:
+					#Get xy of anchor
+					anchorXY = can.coords(widgets)[0:2]
+					anchorXY[0] += self.anchorScale / 2
+					anchorXY[1] += self.anchorScale / 2
+					#set noodle color green
+					can.itemconfig(noodle, fill="#62735B")
+					#move noodle
+					if self.inOut is True:
+						can.coords(noodle, self.start[0], self.start[1], anchorXY[0], anchorXY[1])
+					else:
+						can.coords(noodle, anchorXY[0], anchorXY[1], self.start[0], self.start[1])
+					 
+				#Check if widget is output anchor
+				elif "_anchorOut_" in widgetTags:
+					#Set noodle color red
+					can.itemconfig(noodle, fill="#735E5B")
+					#move noodle
+					if self.inOut is True:
+						can.coords(noodle, self.start[0], self.start[1], event.x, event.y)
+					else:
+						can.coords(noodle, event.x, event.y, self.start[0], self.start[1])
+				
+				#The widget is not an anchor
+				else:
+					#set noodle color grey
+					can.itemconfig(noodle, fill="#737373")
+					if self.inOut is True:
+						can.coords(noodle, self.start[0], self.start[1], event.x, event.y)
+					else:
+						can.coords(noodle, event.x, event.y, self.start[0], self.start[1])
+		
+		#If the list is of zero length
 		else:
-			can.itemconfig(self.noodle, fill="#737373")		
-			can.coords(self.noodle, self.start[0], self.start[1], event.x, event.y)
+			#set noodle color grey
+			can.itemconfig(noodle, fill="#737373")
+			if self.inOut is True:
+				can.coords(noodle, self.start[0], self.start[1], event.x, event.y)
+			else:
+				can.coords(noodle, event.x, event.y, self.start[0], self.start[1])
 		
 		
 	def releaseAnchor(self, event):
 		idList = can.find_overlapping(event.x, event.y, event.x, event.y)
-		print(idList)
-		print("yes")
 		if len(idList) > 0:
 			for items in idList:
 				item = can.itemcget(items, "tag")
@@ -372,7 +442,9 @@ class Node:
 		print("getNoodleEvent")
 		pass
 		
-		#can.coords("noodle", self.start[0], self.start[1], self.stop[0], self.stop[1])
+		
+	def getAnchorDic(self):
+		return[self.noodleAnchorOutDic, self.noodleAnchorInDic]
 		
 		
 class Report:
