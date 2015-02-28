@@ -3,7 +3,7 @@ try:
 	import sys
 	import re
 	from tkinter import *
-	from os import path
+	#from os import path
 except ImportError:
 	print("Faild to import modules.")
 	sys.exit(1)
@@ -24,11 +24,6 @@ class App:
 
 		#Add a default node for testing
 		Node(name="developer")
-
-		if not (path.isfile("/run/media/theenvironmentguy/soft/gitRepos/noodle-pipe/Source/tkinterImplementation/spam.txt")):
-			f = open("/run/media/theenvironmentguy/soft/gitRepos/noodle-pipe/Source/tkinterImplementation/spam.txt", "w")
-			f.write("\n" * 30)
-			f.close()
 
 
 class GUI:
