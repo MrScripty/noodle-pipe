@@ -1,6 +1,6 @@
 # noodle-pipe
-A cross-platform customizable node based pipeline automation tool.
+A cross-platform node based pipeline automation tool.
 
-Originally designed for accelerating game and film production workflows this graphical tool allows an easy way for both artists and developers to automate pipelines/tasks between any number of programs with an available Python API.
+Designed for accelerating game and film production workflows this node based utility allows an easy way for artists to automate pipelines by acting as an graphical frontend to script librarys.
 
-The current in-dev version of noodle-pipe is an early prototype based on Python 3.3 using tkinter. After the prototype has been user tested it will be recoded with updated system design specifications using PyQT4.x-5.x (LGPL). 
+Noodle Pipe is built by an artist for artists. An underlying game engine backend with pythonesque scripting it aims to be beatiful and efficient by design.
