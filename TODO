@@ -1,35 +1,7 @@
 TODO
 
-administration:
-	Start some documentaion
-	Draw up function diagrams
+Porting base function to Godot.
 
-node generation:
-	Done : create new node with hotkey
-	Done : generate unique id's
-	
-node functionality:
-	Done : add anchor points to atach noodles
-	attach .py objects to nodes
-	Pass data between nodes via noodle
-	
-canvas:
-	scrolling canvas
-	snap align nodes 
-	Done : Add grid pattern
-	Done : Add right click menu for node list
-	
-program:
-	Add windows startup compatibility (currently Linux only)
-	Add common default Python interpreter paths
-	Done : Pass exception if Python 3.x not found
-	Add hotkey to run current node setup
-
-Create noodles:
-	Done : Drag from one anchor to another to create noodle
-	Find curve algorithm to draw noodle with
-	Done : Make ends snap to anchor points
-	Auto delete curve not atached to two anchor points
-
+The new platform will make development significantly easyer as well as greatly improving visual appeal and flexibility to modify and extend functionality.
 
 
